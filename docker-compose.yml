@@ -1,0 +1,50 @@
+services:
+  db:
+    container_name: botai_db_sqlserver
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${LOCAL_DB_PASSWORD}
+    ports:
+      - "${LOCAL_DB_PORT}:1433"
+    healthcheck:
+      test: ["CMD", "pgrep", "sqlservr"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    networks:
+      - local_dev
+    user: root
+    volumes:
+      - type: volume
+        source: botai_db
+        target: /var/opt/mssql
+
+  botai:
+    container_name: botai
+    image: ${DOCKER_REGISTRY-}${BACKEND_IMAGE_NAME}
+    build:
+      context: ./BOTAI
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:${BACKEND_PORT}
+      - ConnectionStrings__BOTAIDB=Server=db,1433;Database=BOTAI_DB;User Id=sa;Password=${LOCAL_DB_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=True;
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+      - "8080:8080"
+    networks:
+      - local_dev
+    volumes:
+      - ./data:/app/data
+      - botai_keys:/root/.aspnet/DataProtection-Keys
+
+networks:
+  local_dev: {}
+
+volumes:
+  botai_db: {}
+  botai_keys: {}

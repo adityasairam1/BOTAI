@@ -1,0 +1,45 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BOTAI", "BOTAI\BOTAI.csproj", "{5B49F53F-9298-4AA6-AD0B-141673E3B705}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docker-compose", "dockercompose\docker-compose.dcproj", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		.env = .env
+		docker-compose.dcproj = docker-compose.dcproj
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{0EBFF547-1A69-444F-87C9-4CC1CFCCF90E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{2C26211F-5EA8-418D-B901-189E963387A5}"
+	ProjectSection(SolutionItems) = preProject
+		AddMigration.bat = AddMigration.bat
+		AddMigration.sh = AddMigration.sh
+		InstallEFCoreTools.bat = InstallEFCoreTools.bat
+		ScaffoldDatabase.bat = ScaffoldDatabase.bat
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5B49F53F-9298-4AA6-AD0B-141673E3B705}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B49F53F-9298-4AA6-AD0B-141673E3B705}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B49F53F-9298-4AA6-AD0B-141673E3B705}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B49F53F-9298-4AA6-AD0B-141673E3B705}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5B49F53F-9298-4AA6-AD0B-141673E3B705} = {0EBFF547-1A69-444F-87C9-4CC1CFCCF90E}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {726E308B-421B-461F-A41F-0D74ED75A14A}
+	EndGlobalSection
+EndGlobal
