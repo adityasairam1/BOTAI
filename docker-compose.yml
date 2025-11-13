@@ -22,10 +22,9 @@ services:
 
   botai:
     container_name: botai
-    image: ${DOCKER_REGISTRY-}${BACKEND_IMAGE_NAME}
     build:
-      context: ./BOTAI
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: BOTAI/Dockerfile
     depends_on:
       db:
         condition: service_healthy
@@ -39,7 +38,6 @@ services:
     networks:
       - local_dev
     volumes:
-      - ./data:/app/data
       - botai_keys:/root/.aspnet/DataProtection-Keys
 
 networks:

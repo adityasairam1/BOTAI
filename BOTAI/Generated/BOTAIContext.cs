@@ -1,25 +1,23 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BOTAI.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace BOTAI.Generated
+public partial class BOTAIContext : DbContext
 {
-    public partial class BOTAIContext : DbContext
+    public BOTAIContext(DbContextOptions<BOTAIContext> options)
+        : base(options) { }
+
+    public DbSet<UserProfile> UserProfiles { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        public BOTAIContext()
+        modelBuilder.Entity<UserProfile>(entity =>
         {
+            entity.ToTable("UserProfile", "BOTAI");
 
-        }
+            entity.HasKey(e => e.UserID);
 
-        public BOTAIContext(DbContextOptions<BOTAIContext> options)
-            : base(options)
-        {
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseSqlServer("name=Scaffolding");
-            }
-        }
+            entity.Property(e => e.UserID)
+                  .ValueGeneratedOnAdd();  // this matches your SQL sequence logic
+        });
     }
 }

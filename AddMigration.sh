@@ -1,61 +1,57 @@
-
 #!/bin/bash
 
-# Get migration name from argument or prompt if not provided
+# Get migration name
 scriptName="$1"
 while [ -z "$scriptName" ]; do
-	read -p "Enter migration name: " scriptName
+    read -p "Enter migration name: " scriptName
 done
 
-# Generate Migration Script
+# Run EF migration
 dotnet ef migrations add "$scriptName" \
-	--project .\src\BOTAI ^
-	--startup-project .\src\BOTAI ^
-	--output-dir Generated\Migrations ^
-	--context BOTAIContext
+    --project ./BOTAI \
+    --startup-project ./BOTAI \
+    --output-dir Generated/Migrations \
+    --context BOTAIContext
 
-# Find the generated migration file (assumes default EF naming: <timestamp>_<MigrationName>.cs)
-migrationDir="./src/BOTAI/Generated/Migrations"
-migrationFile=$(find "migrationDir" -type f -name "*_${scriptName}.cs" | head -n 1)
+# Migration folder
+migrationDir="./BOTAI/Generated/Migrations"
 
-# Create empty SQL file in Data/Scripts with the same name as the migration .cs file (including timestamp)
+# Find the generated migration file
+migrationFile=$(find "$migrationDir" -type f -name "*_${scriptName}.cs" | head -n 1)
+
 if [ -f "$migrationFile" ]; then
-	sqlBaseName=$(basename "$migrationFile" .cs)
-	sqlFile="./src/BOTAI/Generated/Scripts/${sqlBaseName}.sql"
-	mkdir -p "src/BOTAI/Generated/Scripts"
-	touch "$sqlFile"
-	# Set SQL file timestamp to match migration file
-	if touch -r "$migrationFile" "$sqlFile" 2>/dev/null; then
-		echo "Created SQL file: $sqlFile with matching timestamp."
-	else
-		modTime=$(stat -f "%m" "$migrationFile")
-		touch -t $(date -r $modTime +%Y%m%d%H) "$sqlFile"
-	fi
+    echo "Migration file found: $migrationFile"
 
-	# Insert 'using System.IO;' as the first line if not present
-	if ! grep -q "using System.IO;" "$migrationFile"; then
-		awk 'NR==1{print "using System.IO;"}1' "$migrationFile" > "$migrationFile.tmp" && mv "$migrationFile.tmp" "$migrationFile"
-	fi
+    sqlBaseName=$(basename "$migrationFile" .cs)
+    sqlDir="./BOTAI/Generated/Scripts"
+    sqlFile="${sqlDir}/${sqlBaseName}.sql"
 
-	# Remove BOM if present
-	perl -i -pe 's/^\xEF\xBB\xBF//' "$migrationFile"
+    mkdir -p "$sqlDir"
+    touch "$sqlFile"
 
-	# Only if not already present
-	upMethodStart=$(grep -n "protected override void Up" "$migrationFile" | cut -d: -f1)
-	if [ -n "$upMethodStart" ]; then
-		# Find the next '{' after Up method declaration
-		braceLine=$(awk "NR>$upMethodStart && /{/{print NR; exit}" "$migrationFile")
-		insertLine=$((braceLine + 1))
+    echo "Created SQL file: $sqlFile"
 
-		# Prepare code to insert
-		codeToInsert="            string scriptFilePath = Path.Combine(Directory.GetCurrentDirectory(), \"Data\", \"Scripts\", \"${sqlBaseName}.sql\");"
+    # Insert using System.IO;
+    if ! grep -q "using System.IO;" "$migrationFile"; then
+        sed -i '1i using System.IO;' "$migrationFile"
+    fi
 
-		# Check if already present
-		if ! grep -q "Path.Combine(Directory.GetCurrentDirectory(), \"Data\", \"Scripts\", \"${sqlBaseName}.sql\")" "$migrationFile"; then
-			# Insert code
-			awk -v insertLine="$insertLine" -v code="$codeToInsert" 'NR==insertLine{print code}1' "$migrationFile" > "$migrationFile.tmp" && mv "$migrationFile.tmp" "$migrationFile"
-		fi
-	fi
+    # Insert code inside Up() method
+    upMethodLine=$(grep -n "protected override void Up" "$migrationFile" | cut -d':' -f1)
+
+    if [ -n "$upMethodLine" ]; then
+        braceLine=$(awk "NR>$upMethodLine && /{/{print NR; exit}" "$migrationFile")
+        insertLine=$((braceLine + 1))
+
+        lineToInsert="            string scriptFilePath = Path.Combine(Directory.GetCurrentDirectory(), \"Data\", \"Scripts\", \"${sqlBaseName}.sql\");"
+
+        if ! grep -q "${sqlBaseName}.sql" "$migrationFile"; then
+            awk -v insertLine="$insertLine" -v new="$lineToInsert" \
+                'NR==insertLine{print new}1' "$migrationFile" \
+                > "$migrationFile.tmp" && mv "$migrationFile.tmp" "$migrationFile"
+        fi
+    fi
+
 else
-	echo "Migration file not found. SQL file not created."
+    echo "Migration file not found."
 fi
