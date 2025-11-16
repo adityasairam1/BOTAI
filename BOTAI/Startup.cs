@@ -19,7 +19,26 @@ namespace BOTAI
             // ✅ Register health checks service
             services.AddHealthChecks();
 
-            services.AddControllersWithViews();
+            // ✅ Add CORS policy
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactApp", policy =>
+                {
+                    policy.WithOrigins("http://localhost:5173", "http://localhost:3000", "http://localhost:5174")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
+                });
+            });
+
+            // ✅ Configure JSON serialization to handle camelCase from frontend
+            services.AddControllersWithViews()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                });
+
             services.AddRazorPages();
 
             // ✅ Swagger setup
@@ -52,6 +71,10 @@ namespace BOTAI
             }
 
             app.UseHttpsRedirection();
+            
+            // ✅ Enable CORS (must be before UseRouting)
+            app.UseCors("AllowReactApp");
+            
             app.UseRouting();
             app.UseAuthorization();
 

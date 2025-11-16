@@ -30,11 +30,10 @@ services:
         condition: service_healthy
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:${BACKEND_PORT}
+      - ASPNETCORE_URLS=http://+:8000
       - ConnectionStrings__BOTAIDB=Server=db,1433;Database=BOTAI_DB;User Id=sa;Password=${LOCAL_DB_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=True;
     ports:
-      - "${BACKEND_PORT}:${BACKEND_PORT}"
-      - "8080:8080"
+      - "8000:8000"   # 👈 FIXED
     networks:
       - local_dev
     volumes:

@@ -1,0 +1,16 @@
+-- 1. Create Chat table if not exists
+IF OBJECT_ID('BOTAI.Chat', 'U') IS NULL
+BEGIN
+	CREATE TABLE BOTAI.Chat (
+		ChatID INT PRIMARY KEY IDENTITY(1,1),
+		UserID INT NOT NULL,
+		Message NVARCHAR(MAX) NOT NULL,
+		SentAT DATETIME DEFAULT GETDATE(),
+
+		-- Foreign key constraint
+		CONSTRAINT FK_Chat_UserProfile
+		FOREIGN KEY (UserID) REFERENCES BOTAI.UserProfile(UserID)
+		ON DELETE CASCADE
+		ON UPDATE CASCADE
+	);
+END;
