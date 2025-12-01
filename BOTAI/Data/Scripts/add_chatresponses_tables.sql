@@ -1,0 +1,15 @@
+--Ensure schema exists
+
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'BOTAI')
+EXEC('CREATE SCHEMA BOTAI');
+
+--Create ChatResponses table
+IF OBJECT_ID('BOTAI.ChatResponses') IS NULL
+BEGIN
+	CREATE TABLE BOTAI.ChatResponses (
+		ResponseID INT IDENTITY(1,1) PRIMARY KEY,
+		Keywords NVARCHAR(255) NOT NULL,
+		ReplyText NVARCHAR(MAX) NOT NULL,
+		CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+		);
+END
