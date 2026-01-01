@@ -1,4 +1,5 @@
 ﻿using BOTAI.Generated;
+using BOTAI.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace BOTAI
@@ -45,6 +46,7 @@ namespace BOTAI
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
 
+            // ✅ EF Core DbContext
             services.AddDbContext<BOTAIContext>(builder =>
                 builder.UseSqlServer(
                     Configuration.GetConnectionString("BOTAIDB"),
@@ -54,6 +56,10 @@ namespace BOTAI
                         errorNumbersToAdd: null)
                 )
             );
+
+            // ✅ Register PythonChatService so it can be injected into controllers
+            // IConfiguration will be automatically injected along with HttpClient
+            services.AddHttpClient<PythonChatService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, BOTAIContext dbContext)
@@ -71,10 +77,10 @@ namespace BOTAI
             }
 
             app.UseHttpsRedirection();
-            
+
             // ✅ Enable CORS (must be before UseRouting)
             app.UseCors("AllowReactApp");
-            
+
             app.UseRouting();
             app.UseAuthorization();
 

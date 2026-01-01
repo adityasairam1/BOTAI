@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BOTAI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+234d0c1b50c1758bb5a21b1a928986204a4953e9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f6e08ff11bc095199f525ba46eb2c2134a2f8a28")]
 [assembly: System.Reflection.AssemblyProductAttribute("BOTAI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BOTAI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

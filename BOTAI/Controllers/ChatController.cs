@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using Dapper;
 using System.Data;
+using BOTAI.Services;
 
 namespace BOTAI.Controllers
 {
@@ -10,64 +11,74 @@ namespace BOTAI.Controllers
     public class ChatController : ControllerBase
     {
         private readonly IConfiguration _config;
+        private readonly PythonChatService _pythonChatService;
 
-        public ChatController(IConfiguration config)
+        public ChatController(IConfiguration config, PythonChatService pythonChatService)
         {
             _config = config;
+            _pythonChatService = pythonChatService;
         }
 
         [HttpPost]
         public async Task<IActionResult> Chat([FromBody] ChatRequest request)
         {
+            Console.WriteLine($"[DEBUG] Received message: {request.Message}");
+
             if (string.IsNullOrEmpty(request.Message))
             {
+                Console.WriteLine("[DEBUG] Message was empty");
                 return BadRequest(new { message = "Message is required." });
             }
 
-            var connectionString = _config.GetConnectionString("BOTAIDB");
+            string reply = null;
 
-            using var connection = new SqlConnection(connectionString);
-
-            // Get all responses
-            var responses = await connection.QueryAsync<ChatResponse>(
-                "SELECT ResponseID, Keywords, ReplyText FROM BOTAI.ChatResponses"
-            );
-
-            // Find matching response based on keywords
-            var userMessage = request.Message.ToLower();
-            string reply = "I'm sorry, I don't have an answer for that. Could you ask about my work, skills, education, or experience?";
-
-            int bestMatchCount = 0;
-            string bestMatchReply = reply;
-
-            // Check ALL responses and find the one with most keyword matches
-            foreach (var response in responses)
+            try
             {
-                var keywords = response.Keywords.ToLower().Split(',');
-                int matchCount = 0;
+                var connectionString = _config.GetConnectionString("BOTAIDB");
+                using var connection = new SqlConnection(connectionString);
 
-                foreach (var keyword in keywords)
+                var responses = await connection.QueryAsync<ChatResponse>(
+                    "SELECT ResponseID, Keywords, ReplyText FROM BOTAI.ChatResponses"
+                );
+
+                Console.WriteLine($"[DEBUG] Retrieved {responses.Count()} responses from DB");
+
+                var userMessage = request.Message.ToLower();
+                int bestMatchCount = 0;
+
+                foreach (var response in responses)
                 {
-                    var trimmedKeyword = keyword.Trim();
-                    // Check if user message contains this keyword
-                    if (userMessage.Contains(trimmedKeyword))
+                    var keywords = response.Keywords.ToLower().Split(',');
+                    int matchCount = keywords.Count(k => userMessage.Contains(k.Trim()));
+
+                    if (matchCount > bestMatchCount)
                     {
-                        matchCount++;
+                        bestMatchCount = matchCount;
+                        reply = response.ReplyText;
                     }
                 }
 
-                // If this response has more matches than previous best, use it
-                if (matchCount > bestMatchCount)
+                if (bestMatchCount == 0)
                 {
-                    bestMatchCount = matchCount;
-                    bestMatchReply = response.ReplyText;
+                    Console.WriteLine("[DEBUG] No DB match found. Calling Python service...");
+                    reply = await _pythonChatService.ProcessMessageAsync(1, request.Message);
+                    Console.WriteLine($"[DEBUG] Python service replied: {reply}");
+                }
+                else
+                {
+                    Console.WriteLine($"[DEBUG] DB match found. Reply: {reply}");
                 }
             }
-
-            // If we found at least one matching keyword, return the best match
-            if (bestMatchCount > 0)
+            catch (Exception ex)
             {
-                reply = bestMatchReply;
+                Console.WriteLine($"[ERROR] Exception in ChatController: {ex.Message}");
+                return StatusCode(500, new { message = "Internal server error", detail = ex.Message });
+            }
+
+            if (string.IsNullOrEmpty(reply))
+            {
+                reply = "I'm sorry, I don't have an answer for that. Could you ask about my work, skills, education, or experience?";
+                Console.WriteLine("[DEBUG] Fallback reply used.");
             }
 
             return Ok(new { reply });

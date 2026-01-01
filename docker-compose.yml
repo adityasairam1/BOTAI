@@ -32,6 +32,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8000
       - ConnectionStrings__BOTAIDB=Server=db,1433;Database=BOTAI_DB;User Id=sa;Password=${LOCAL_DB_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=True;
+      - PythonService__BaseUrl=http://host.docker.internal:9000
     ports:
       - "8000:8000"   # 👈 FIXED
     networks:
